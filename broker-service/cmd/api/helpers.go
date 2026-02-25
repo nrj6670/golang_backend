@@ -2,17 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 )
 
 type jsonResponse struct {
 	Error   bool   `json:"error"`
-	Message string `json:"message:`
+	Message string `json:"message"`
 	Data    any    `json:"data,omitempty"`
 }
 
-func (app *Config) readJSON(w http.ResponseWriter, r http.Request, data any) error {
+func (app *Config) readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxBytes := 1048576
 
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -24,11 +23,11 @@ func (app *Config) readJSON(w http.ResponseWriter, r http.Request, data any) err
 		return err
 	}
 
-	err = dec.Decode(&struct{}{})
+	// err = dec.Decode(&struct{}{})
 
-	if err != nil {
-		return errors.New("body must have only a single JSON value")
-	}
+	// if err != nil {
+	// 	return errors.New("body must have only a single JSON value")
+	// }
 
 	return nil
 }
