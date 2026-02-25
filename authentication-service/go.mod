@@ -1,4 +1,4 @@
-module authetication
+module authentication
 
 go 1.23
 

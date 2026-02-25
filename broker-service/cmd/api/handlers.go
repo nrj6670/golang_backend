@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 )
 
@@ -31,9 +30,9 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	var requestPayload RequestPayload
 
 	err := app.readJSON(w, r, &requestPayload)
-
 	if err != nil {
 		app.errorJSON(w, err)
+		return
 	}
 
 	switch requestPayload.Action {
@@ -45,9 +44,11 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
-	jsondata, _ := json.MarshalIndent(a, "", "\t")
+	// create some json we'll send to the auth microservice
+	jsonData, _ := json.MarshalIndent(a, "", "\t")
 
-	request, err := http.NewRequest("POST", "http://authentication-service/authenticate", bytes.NewBuffer(jsondata))
+	// call the service
+	request, err := http.NewRequest("POST", "http://authentication-service/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -55,25 +56,25 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 
 	client := &http.Client{}
 	response, err := client.Do(request)
-	log.Println(response)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
-
 	defer response.Body.Close()
 
-	//make sure  we  get back the current status code
+	// make sure we get back the correct status code
 	if response.StatusCode == http.StatusUnauthorized {
-		app.errorJSON(w, errors.New("invalid credentails"))
+		app.errorJSON(w, errors.New("invalid credentials"))
+		return
 	} else if response.StatusCode != http.StatusAccepted {
 		app.errorJSON(w, errors.New("error calling auth service"))
+		return
 	}
 
-	//create a variable we'll read response into
+	// create a varabiel we'll read response.Body into
 	var jsonFromService jsonResponse
 
-	//decode the json from auth service
+	// decode the json from the auth service
 	err = json.NewDecoder(response.Body).Decode(&jsonFromService)
 	if err != nil {
 		app.errorJSON(w, err)
