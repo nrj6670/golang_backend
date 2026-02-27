@@ -4,3 +4,6 @@ project/db-data/mongo/*
 
 project/db-data/postgres/*
 !project/db-data/postgres/.gitkeep
+
+project/db-data/rabbitmq/*
+!project/db-data/rabbitmq/.gitkeep
