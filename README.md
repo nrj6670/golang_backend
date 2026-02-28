@@ -17,6 +17,13 @@ cd project
 make up_build
 ```
 
+On **Windows**, use the Windows-specific Makefile:
+
+```bash
+cd project
+make -f Makefile.windows up_build
+```
+
 This will:
 
 1. Build Linux binaries for broker, auth, logger, mail, and listener
