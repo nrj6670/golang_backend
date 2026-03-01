@@ -3,7 +3,7 @@ version: '3'
 services:
 
   front-end:
-    image: nrj6670/front-end:1.0.2
+    image: nrj6670/front-end:1.0.0
     deploy:
       mode: replicated
       replicas: 1

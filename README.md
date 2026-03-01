@@ -8,9 +8,9 @@ This repo contains a Go-based microservices stack and a front-end app. Use the *
 - **Go 1.21+** – for building binaries locally (optional)
 - **Make** – for running the commands below
 
-## Quick Start (Docker)
+## Quick Start (Docker Compose)
 
-From the **project** directory:
+From the **project** directory, a single command will build and run **both** the back-end services and the front-end behind Caddy:
 
 ```bash
 cd project
@@ -26,11 +26,13 @@ make -f Makefile.windows up_build
 
 This will:
 
-1. Build Linux binaries for broker, auth, logger, mail, and listener
+1. Build Linux binaries for broker, auth, logger, mail, listener, and front-end.
 2. Bring down any existing stack
-3. Build and start all Docker Compose services (broker, auth, logger, mailer, listener, Postgres, Mongo, RabbitMQ, MailHog)
+3. Build and start all Docker Compose services (front-end, Caddy, broker, auth, logger, mailer, listener, Postgres, Mongo, RabbitMQ, MailHog)
 
-To start existing images without rebuilding:
+Once the stack is running, you can access the application at `http://localhost:80`.
+
+To start existing images without rebuilding (e.g. after a reboot), you can use:
 
 ```bash
 cd project
@@ -71,7 +73,7 @@ make down
 
 ## Front-End (standalone)
 
-To build and run the front-end without Docker:
+To build and run the front-end **without Docker** (pure Go binary on your host):
 
 ```bash
 cd project
@@ -86,6 +88,35 @@ make stop
 ```
 
 The front-end serves on port 80 by default.
+
+> **Note:** When using Docker Compose, you do **not** need to run any additional `make` command to start the front-end separately – it is started automatically as part of `make up_build` / `make up`.
+
+## Docker Swarm (optional)
+
+You can also run the stack using **Docker Swarm** with the `swarm.yml` file in the `project/` directory.
+
+From the **project** directory:
+
+```bash
+cd project
+
+# 1. Initialize Swarm (only once per Docker host)
+docker swarm init
+
+# 2. Deploy the stack using swarm.yml
+docker stack deploy -c swarm.yml microservices
+
+# 3. Scale a service (example: 3 replicas of broker-service)
+docker service scale microservices_broker-service=3
+
+# 4. Update a service to use a new image tag
+docker service update --image your-registry/your-image:latest microservices_broker-service
+
+# 5. Remove the deployed stack
+docker stack rm microservices
+```
+
+When the Swarm stack is running, the application is available at `http://localhost:80`.
 
 ## Project Layout
 
