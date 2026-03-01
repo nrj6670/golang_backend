@@ -1,29 +1,33 @@
 version: '3'
 
 services:
+  front-end:
+    build:
+      context: ./../front-end
+      dockerfile: front-end.dockerfile
+    environment:
+      BROKER_URL: http://backend
+
 
   broker-service:
     build:
       context: ./../broker-service
       dockerfile: ./../broker-service/broker-service.dockerfile
     restart: always
-    ports:
-      - "8080:80"
     deploy:
       mode: replicated
       replicas: 1
+
   authentication-service:
     build:
       context: ./../authentication-service
       dockerfile: ./../authentication-service/authentication-service.dockerfile
     restart: always
-    ports:
-      - "8081:80"
     deploy:
       mode: replicated
       replicas: 1
     environment:
-      DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+      DSN: 'host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5'
 
   logger-service:
     build:
@@ -47,9 +51,9 @@ services:
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
       MAIL_ENCRYPTION: none
-      MAIL_USERNAME: ""
-      MAIL_PASSWORD: ""
-      FROM_NAME: "robo"
+      MAIL_USERNAME: ''
+      MAIL_PASSWORD: ''
+      FROM_NAME: 'robo'
       FROM_ADDRESS: robo@test.com
 
   listener-service:
@@ -64,7 +68,7 @@ services:
   postgres:
     image: 'postgres:14.0'
     ports:
-      - "5432:5432"
+      - '5432:5432'
     restart: always
     deploy:
       mode: replicated
@@ -79,7 +83,7 @@ services:
   mongo:
     image: 'mongo:4.2.16-bionic'
     ports:
-      - "27017:27017"
+      - '27017:27017'
     environment:
       MONGO_INITDB_DATABASE: logs
       MONGO_INITDB_ROOT_USERNAME: admin
@@ -96,10 +100,24 @@ services:
   rabbitmq:
     image: 'rabbitmq:3.9-alpine'
     ports:
-      - "5672:5672"
+      - '5672:5672'
     deploy:
       mode: replicated
       replicas: 1
     volumes:
       - ./db-data/rabbitmq/:/var/log/rabbitmq
+  
+  caddy:
+    build:
+      context: ./
+      dockerfile: caddy.dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./caddy_data:/data
+      - ./caddy_config:/config
       
