@@ -7,3 +7,8 @@ project/db-data/postgres/*
 
 project/db-data/rabbitmq/*
 !project/db-data/rabbitmq/.gitkeep
+
+project/caddy_config/*
+!project/caddy_config/.gitkeep
+project/caddy_data/*
+!project/caddy_data/.gitkeep
