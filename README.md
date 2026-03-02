@@ -118,6 +118,144 @@ docker stack rm microservices
 
 When the Swarm stack is running, the application is available at `http://localhost:80`.
 
+## Kubernetes Deployment (Minikube)
+
+All Kubernetes manifests are located under `project/k8s/`.
+
+### 1. Start Minikube
+
+```bash
+minikube start
+```
+
+You can optionally open the Minikube dashboard in a browser:
+
+```bash
+minikube dashboard
+```
+
+### 2. Enable and verify Ingress
+
+This project uses an ingress controller to expose the front-end and broker services via DNS names.
+
+Enable the NGINX ingress addon:
+
+```bash
+minikube addons enable ingress
+```
+
+Verify that the ingress controller pods are running:
+
+```bash
+kubectl get pods -n ingress-nginx
+```
+
+If no pods are returned or the namespace does not exist, re-run the addon enable command and wait until the `ingress-nginx-controller` pod reaches `Running` status.
+
+### 3. Deploy Kubernetes manifests
+
+From the repository root, apply all manifests in `project/k8s/`:
+
+```bash
+kubectl apply -f project/k8s/
+```
+
+You can re-apply the same command whenever you change a manifest.
+
+### 4. Check pod, deployment, and service status
+
+Common status commands:
+
+```bash
+# All pods in the default namespace
+kubectl get pods
+
+# All deployments
+kubectl get deployments
+
+# All services
+kubectl get svc
+
+# Detailed view of a specific deployment or service
+kubectl describe deployment front-end
+kubectl describe svc front-end
+```
+
+Wait until all relevant pods (front-end, broker, and other services) are in `Running` or `Completed` state before proceeding.
+
+### 5. Start Minikube tunnel (for ingress)
+
+After all pods and the ingress controller are running, start the tunnel in a separate terminal:
+
+```bash
+minikube tunnel
+```
+
+Leave this process running while you access the application via the ingress hostnames.
+
+### 6. Configure hosts file
+
+Add the following line to your system hosts file:
+
+```text
+127.0.0.1 front-end.info broker-end.info
+```
+
+Typical hosts file locations:
+
+- **Windows**: `C:\Windows\System32\drivers\etc\hosts` (edit with an Administrator editor)
+- **Linux**: `/etc/hosts` (usually requires `sudo` to edit)
+- **macOS**: `/etc/hosts` (usually requires `sudo` to edit)
+
+With the hosts entry, ingress, and tunnel in place, you can access the front-end application at:
+
+```text
+http://front-end.info
+```
+
+### 7. Scaling and updating deployments
+
+Scale a deployment (example: 3 replicas of the front-end):
+
+```bash
+kubectl scale deployment front-end --replicas=3
+```
+
+Update a deployment to use a new image tag (example updates the `front-end` container image):
+
+```bash
+kubectl set image deployment/front-end front-end=nrj6670/front-end:1.0.1
+```
+
+You can use the same pattern for other services (broker, authentication, etc.) by substituting the deployment and container names and image tags.
+
+### 8. Logs and debugging
+
+Useful commands for troubleshooting:
+
+```bash
+# View logs for a pod
+kubectl logs <pod-name>
+
+# Stream logs (follow)
+kubectl logs -f <pod-name>
+
+# Describe a pod or service for events and configuration
+kubectl describe pod <pod-name>
+kubectl describe svc <service-name>
+
+# List recent events
+kubectl get events --sort-by=.metadata.creationTimestamp
+```
+
+If ingress is not working as expected, check the ingress resource and controller:
+
+```bash
+kubectl get ingress
+kubectl describe ingress my-ingress
+kubectl logs -n ingress-nginx deploy/ingress-nginx-controller
+```
+
 ## Project Layout
 
 - **project/** – Docker Compose, Makefile, and db-data volumes
